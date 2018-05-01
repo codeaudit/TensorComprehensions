@@ -35,7 +35,8 @@ using namespace tc::polyhedral::detail;
 
 SymbolTable makeSymbolTable(const tc2halide::HalideComponents& components) {
   // const Stmt& s) {
-  // Collect and categorize all the Variable symbols
+  // Collect and categorize all the Halide Variable symbols as reduction
+  // or index variables
   class BuildSymbolTable : public IRVisitor {
     using IRVisitor::visit;
     std::set<std::string> included;
@@ -60,7 +61,7 @@ SymbolTable makeSymbolTable(const tc2halide::HalideComponents& components) {
 
   components.stmt.accept(&builder);
   // Get params from components.params which contain everything declared in
-  // tcdef. However, the 0-D tensors are registered as both params and inputs,
+  // TC Def. However, the 0-D tensors are registered as both params and inputs,
   // filter those out.
   for (auto kvp : components.params) {
     bool skip = false;
@@ -93,7 +94,7 @@ namespace {
  * Convert Halide binary expression "op" into a list of isl affine functions by
  * converting its LHS and RHS into lists of affs and concatenating those lists.
  * This is intended to be used with Min/Max operations in upper/lower bound
- * computations, respectively.  Essentially, this allows for replacements
+ * computations, respectively. Essentially, this allows for replacements
  *   x < min(a,min(b,c)) <=> x < a AND x < b AND x < c
  *   x > max(a,max(b,c)) <=> x > a AND x > b AND x > c
  */
