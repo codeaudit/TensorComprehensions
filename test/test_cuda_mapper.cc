@@ -753,6 +753,26 @@ def perforatedConvolution(float(N, C, H, W) input, float(M, C, KH, KW) weights,
   Prepare(tc);
 }
 
+TEST_F(PolyhedralMapperTest, ModulusConstantRHS) {
+  string tc = R"TC(
+def fun(float(N) a) -> (b) { b(i) = a(i % 2) where i in 0:N }
+)TC";
+  // This triggers tc2halide conversion and should not throw.
+  auto scop = Prepare(tc);
+  auto reads = scop->reads;
+}
+
+TEST_F(PolyhedralMapperTest, ModulusVariableRHS) {
+  string tc = R"TC(
+def local_sparse_convolution(float(N, C, H, W) I, float(O, KC, KH, KW) W1) -> (O1) {
+  O1(n, o, h, w) +=! I(n, kc % c, h + kh, w + kw) * W1(o, kc, kh, kw) where c in 1:C
+}
+)TC";
+  // This triggers tc2halide conversion and should not throw.
+  auto scop = Prepare(tc);
+  auto reads = scop->reads;
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   ::gflags::ParseCommandLineFlags(&argc, &argv, true);
